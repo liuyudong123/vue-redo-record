@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="js/elementui/index.min.css">
+	<script type="text/javascript" src="js/vue.js"></script>
+	<script type="text/javascript" src="js/elementui/index.min.js"></script>
+	<script type="text/javascript" src="js/jquery-1.9.0.js"></script>
+</head>
+<body>
+	<div id="app" v-cloak>
+		<ul>
+			<li v-for="item in obj.item">
+				{{item.name}}：{{item.sex}}岁 <button @click="set(item,'sex',20)">修改name</button>
+			</li>
+		</ul>
+		<button @click="sets(obj.item,'sex',20)">修改name</button>
+		<hr>
+		<ul>
+			<li v-for="item in obj.bas">
+				{{item.cp}}：{{item.address}} <button @click="set(item,'address','上海')">修改address</button>
+			</li>
+		</ul>
+		<hr>
+		<ul>
+			<li v-for="item in history">
+				{{JSON.stringify(item)}}
+			</li>
+		</ul>
+	</div>
+	<script type="text/javascript">
+		var app=new Vue({
+			el:"#app",
+			data:{
+				// history的值有两种形式 一种是数组，一种则是对象{obj,attr,val}，不管数组还是对象都是成对入堆的，就是修改前后的组合
+				history:[],
+				history_index:0,
+				obj:{
+					msg:123,
+					item:[
+						{name:"张三",sex:10},
+						{name:"李四",sex:11},
+						{name:"王麻子",sex:12},
+					],
+					bas:[
+						{cp:"产品1",address:"北京"},
+						{cp:"产品2",address:"天津"},
+						{cp:"产品3",address:"重庆"},
+					]
+				}
+			},
+			methods:{
+				// 更新历史记录的长度
+				updateHistoryLeng(){
+					var _this=this;
+					_this.history_index=_this.history.length;
+				},
+				set(obj,attr,val){
+					var _this=this;
+					_this.history.push({obj:obj,attr:attr,val:obj[attr]});
+					obj[attr]=val;
+					_this.history.push({obj:obj,attr:attr,val:val});
+					_this.updateHistoryLeng();
+				},
+				sets(objs,attr,val){
+					var _this=this;
+					var a=[];
+					var b=[];
+					objs.forEach((o,i)=>{
+						a.push({obj:o,attr:attr,val:o[attr]});
+						b.push({obj:o,attr:attr,val:val});
+						o[attr]=val;
+					})
+					_this.history.push(a);
+					_this.history.push(b);
+					_this.updateHistoryLeng();
+				}
+			},
+			created(){
+
+			},
+			mounted(){
+				var _this=this;
+				$(window).keydown(function(e){
+					// 90 z
+					if(e.ctrlKey&&e.keyCode==90){
+						if(_this.history_index!=0){
+							_this.history_index-=2;
+							var history=_this.history[_this.history_index];
+							if(history.fill){
+								history.forEach((o,i)=>{
+									o.obj[o.attr]=o.val;
+								})
+							}else{
+								history.obj[history.attr]=history.val;
+							}
+						}
+					}
+					// 89 y
+					if(e.ctrlKey&&e.keyCode==89){
+						if(_this.history_index<_this.history.length){
+							_this.history_index+=2;
+							var history=_this.history[_this.history_index-1];
+							if(history.fill){
+								history.forEach((o,i)=>{
+									o.obj[o.attr]=o.val;
+								})
+							}else{
+								history.obj[history.attr]=history.val;
+							}
+						}
+					}
+				})
+			}
+		});
+		console.log(typeof {}==typeof [],[].fill,{}.find);
+	</script>
+</body>
+</html>
