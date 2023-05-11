@@ -8,6 +8,7 @@
 	<script type="text/javascript" src="js/vue.js"></script>
 	<script type="text/javascript" src="js/elementui/index.min.js"></script>
 	<script type="text/javascript" src="js/jquery-1.9.0.js"></script>
+	<script type="text/javascript" src="js/record.js"></script>
 </head>
 <body>
 	<div id="app" v-cloak>
@@ -16,7 +17,8 @@
 				{{item.name}}：{{item.sex}}岁 <button @click="set(item,'sex',20)">修改name</button>
 			</li>
 		</ul>
-		<button @click="sets(obj.item,'sex',20)">集体修改name</button>
+		<button @click="sets(obj.item,'sex',[20,21,22])">集体修改name</button>
+		<button @click="updateAttr(obj.item)">setAttrs集体修改name</button>
 		<hr>
 		<ul>
 			<li v-for="item in obj.bas">
@@ -24,20 +26,20 @@
 			</li>
 		</ul>
 		<hr>
-		历史记录
+		历史记录({{record.history_index}})
 		<ul>
-			<li v-for="item in history">
-				{{JSON.stringify(item)}}
+			<li v-for="(item,index) in record.history">
+				{{index+1==record.history_index?"●":""}}{{JSON.stringify(item)}}
 			</li>
 		</ul>
 	</div>
 	<script type="text/javascript">
+
+
+		
 		var app=new Vue({
 			el:"#app",
 			data:{
-				// history的值有两种形式 一种是数组，一种则是对象{obj,attr,val}，不管数组还是对象都是成对入堆的，就是修改前后的组合
-				history:[],
-				history_index:0,
 				obj:{
 					msg:123,
 					item:[
@@ -53,31 +55,32 @@
 				}
 			},
 			methods:{
-				// 更新历史记录的长度
-				updateHistoryLeng(){
-					var _this=this;
-					_this.history_index=_this.history.length;
-				},
 				set(obj,attr,val){
 					var _this=this;
-					_this.history.push({obj:obj,attr:attr,val:obj[attr]});
+					record.start([obj],[attr]);
 					obj[attr]=val;
-					_this.history.push({obj:obj,attr:attr,val:val});
-					_this.updateHistoryLeng();
+					record.end();
 				},
-				sets(objs,attr,val){
+				sets(objs,attr,vals){
 					var _this=this;
-					var a=[];
-					var b=[];
+					record.start(objs,[attr]);
 					objs.forEach((o,i)=>{
-						a.push({obj:o,attr:attr,val:o[attr]});
-						b.push({obj:o,attr:attr,val:val});
-						o[attr]=val;
+						o[attr]=vals[i];
 					})
-					_this.history.push(a);
-					_this.history.push(b);
-					_this.updateHistoryLeng();
-				}
+					record.end();
+				},
+				updateAttr(items){
+					var _this=this;
+					var sets=[];
+					var rst=record.start(items,["sex"]);
+					items.forEach((o,i)=>{
+						o.sex=i+1;
+					})
+					var rst2=record.end();
+
+					console.log(JSON.stringify(rst));
+					console.log(JSON.stringify(rst2));
+				},
 			},
 			created(){
 
@@ -85,38 +88,17 @@
 			mounted(){
 				var _this=this;
 				$(window).keydown(function(e){
-					// 90 z
+					// 90 ctrl+z
 					if(e.ctrlKey&&e.keyCode==90){
-						if(_this.history_index!=0){
-							_this.history_index-=2;
-							var history=_this.history[_this.history_index];
-							if(history.fill){
-								history.forEach((o,i)=>{
-									o.obj[o.attr]=o.val;
-								})
-							}else{
-								history.obj[history.attr]=history.val;
-							}
-						}
+						record.ctrlz();
 					}
-					// 89 y
+					// 89 ctrl+y
 					if(e.ctrlKey&&e.keyCode==89){
-						if(_this.history_index<_this.history.length){
-							_this.history_index+=2;
-							var history=_this.history[_this.history_index-1];
-							if(history.fill){
-								history.forEach((o,i)=>{
-									o.obj[o.attr]=o.val;
-								})
-							}else{
-								history.obj[history.attr]=history.val;
-							}
-						}
+						record.ctrly();
 					}
 				})
 			}
 		});
-		console.log(typeof {}==typeof [],[].fill,{}.find);
 	</script>
 </body>
 </html>
