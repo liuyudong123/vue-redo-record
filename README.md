@@ -38,6 +38,7 @@ $(window).keydown(function(e){
 # 方法
 
 ## start
+主要就考start和end配合达到记录的效果
 `start(obj_arr Array, temp_attr Array, is_end Boolean)`
 
 ### obj_arr Array
